@@ -1,0 +1,16 @@
+# podcast-local — this repo tracks only the debug / documentation artifacts.
+# The site itself (app/), Local's runtime folders (conf/, logs/), MCP scratch output,
+# and editor/tool config are intentionally NOT tracked.
+#
+# Strategy: ignore everything at the root, then explicitly allow the artifacts.
+
+/*
+
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/CLAUDE.md
+!/handover.md
+!/.mcp.json
+!/tasks/
+!/accessibility-fixes/

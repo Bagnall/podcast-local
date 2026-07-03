@@ -1,0 +1,11 @@
+/*
+ * Accessibility fixes for the Customizer -> Additional CSS box.
+ * Paste this block at the END of Appearance -> Customize -> Additional CSS on the LIVE site.
+ */
+
+/* === A11Y FIX 1: link-in-text-block (WCAG 1.4.1) === */
+/* Sydney resets links with ':root .site :where(a...) {text-decoration:none !important}'
+   (specificity 0,2,0 + !important), so we must match that specificity and use !important. */
+:root .site a.podcast-meta-download,
+:root .site a.podcast-meta-new-window { text-decoration: underline !important; }
+/* === END A11Y FIX 1 === */
