@@ -4,7 +4,7 @@
 > goal, every decision made so far, current progress, and the exact next step. Read it top to
 > bottom and continue from the **"Current status / next step"** section.
 
-_Last updated: 2026-06-30_
+_Last updated: 2026-07-03_
 
 ---
 
@@ -64,6 +64,24 @@ completion before moving on.** Keep that style.
   HTML). Fixes are archived in [accessibility-fixes/](accessibility-fixes/) (Customizer CSS + 4 Code
   Snippets). Nothing outstanding; re-run the axe/WAVE audit after any
   SSP or Sydney update (see the `sydney-css-a11y-overrides` memory for update-fragility notes).
+
+## Version control (git)
+
+- **Repo root:** the project root `C:\Users\Richard\Local Sites\podcast-local\`. Remote:
+  `https://github.com/Bagnall/podcast-local.git`, branch `main`. Managed via GitHub Desktop.
+- **Fixed 2026-07-03:** the repo had been created one level too deep — a nested
+  `podcast-local\podcast-local\` sub-repo containing only a stub README — so no real changes ever
+  appeared in GitHub Desktop. Moved `.git` up to the project root (remote + history preserved) and
+  deleted the empty nested folder. In GitHub Desktop, remove the old (nested) repo entry and
+  **Add local repository** → the project root.
+- **What's tracked** (see `.gitignore`): ONLY the debug/documentation artifacts — `CLAUDE.md`,
+  `handover.md`, `tasks/`, `accessibility-fixes/`, `.mcp.json`. Everything else is ignored: the
+  WordPress install (`app/`), Local's runtime dirs (`conf/`, `logs/`), `.claude/`, and MCP scratch
+  (`.playwright-mcp/`).
+- **Important:** the accessibility/validation fixes live in the WordPress **database** (Customizer
+  `custom_css` + the `wp_snippets` table), NOT in files — so they never show up as git changes. The
+  [accessibility-fixes/](accessibility-fixes/) bundle (CSS block + importable Code Snippets export +
+  README/APPLY-TO-LIVE) is their version-controlled representation.
 
 ## ⚠️ Important caveat about this folder
 
