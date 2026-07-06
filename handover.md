@@ -4,7 +4,7 @@
 > goal, every decision made so far, current progress, and the exact next step. Read it top to
 > bottom and continue from the **"Current status / next step"** section.
 
-_Last updated: 2026-07-03_
+_Last updated: 2026-07-06_
 
 ---
 
@@ -52,6 +52,8 @@ completion before moving on.** Keep that style.
 - **Step 4 — Import live DB + fix URLs/prefix** — [tasks/step-4-import-live-db.md](tasks/step-4-import-live-db.md)
 - **Step 5 — Connect an MCP** — [tasks/step-5-connect-mcp.md](tasks/step-5-connect-mcp.md)
 - **Step 6 — Accessibility remediation (WAVE/W3C)** — [tasks/step-6-accessibility.md](tasks/step-6-accessibility.md)
+- **Step 7 — Build reusable WordPress skills (5)** — [tasks/step-7-build-skills.md](tasks/step-7-build-skills.md)
+- **Step 8 — Investigate home-page "hidden audio"** — [tasks/step-8-home-audio-investigation.md](tasks/step-8-home-audio-investigation.md)
 
 ## Current status / next step
 
@@ -62,8 +64,27 @@ completion before moving on.** Keep that style.
   0 axe violations on home + episode; the SSP player 404 is gone and the player is an accessible light
   theme. W3C validity was also cleaned up (2026-07-02): **home + episode = 0 W3C errors** (CSS and
   HTML). Fixes are archived in [accessibility-fixes/](accessibility-fixes/) (Customizer CSS + 4 Code
-  Snippets). Nothing outstanding; re-run the axe/WAVE audit after any
-  SSP or Sydney update (see the `sydney-css-a11y-overrides` memory for update-fragility notes).
+  Snippets). Re-run the axe/WAVE audit after any SSP or Sydney update (see the
+  `sydney-css-a11y-overrides` memory for update-fragility notes).
+
+### Active workstreams (as of 2026-07-06)
+- **Step 7 — building 5 reusable WordPress skills (IN PROGRESS, 3 of 5 built).** `wp-cli-local`,
+  `wp-a11y-audit`, `wp-safe-fix` are built, tested, and live under `.claude/skills/` (each with its own
+  `HANDOVER.md`). **Next: Skill #4 `wp-plugin-scaffold`, then #5 `wp-security-review`** — the agreed
+  approach, the shaping questions to ask, and skill locations are in
+  [tasks/step-7-build-skills.md](tasks/step-7-build-skills.md). A fresh session has skills 1–3 loaded
+  automatically.
+- **Step 8 — home-page "hidden audio" investigation (NOT STARTED).** User reported it; no details
+  captured yet. Start by asking what "hidden audio" means, then inspect the home page's `<audio>` /
+  `.castos-player` elements via the Playwright MCP. See
+  [tasks/step-8-home-audio-investigation.md](tasks/step-8-home-audio-investigation.md).
+- **Deferred:** moving the project to `C:\web\podcast-local` — abandoned for now (Local-managed site;
+  a raw move breaks Local).
+
+### ⚠️ Uncommitted git changes (do this first in a new session)
+The new `.claude/skills/` (three skills + handovers), the `.gitignore` change (un-ignoring
+`.claude/skills/`), and these `handover.md` / `tasks/` updates are **not yet committed**. Commit + push
+them in **GitHub Desktop** (repo root = the project folder; branch `main`; remote Bagnall/podcast-local).
 
 ## Version control (git)
 

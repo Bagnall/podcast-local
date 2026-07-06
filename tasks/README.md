@@ -15,5 +15,7 @@ Full context lives in [../handover.md](../handover.md).
 | 4 | Import live DB + fix URLs/prefix | ✅ Done | [step-4-import-live-db.md](step-4-import-live-db.md) |
 | 5 | Connect an MCP | ✅ Done | [step-5-connect-mcp.md](step-5-connect-mcp.md) |
 | 6 | Accessibility remediation (WAVE/W3C) | ✅ Done | [step-6-accessibility.md](step-6-accessibility.md) |
+| 7 | Build reusable WordPress skills (5) | ⏳ In progress (3/5) | [step-7-build-skills.md](step-7-build-skills.md) |
+| 8 | Investigate home-page "hidden audio" | ☐ Not started | [step-8-home-audio-investigation.md](step-8-home-audio-investigation.md) |
 
 **Status key:** ☐ Not started · ⏳ In progress · ✅ Done
