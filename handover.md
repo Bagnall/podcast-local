@@ -74,16 +74,20 @@ completion before moving on.** Keep that style.
   approach, the shaping questions to ask, and skill locations are in
   [tasks/step-7-build-skills.md](tasks/step-7-build-skills.md). A fresh session has skills 1–3 loaded
   automatically.
-- **Step 8 — home-page "hidden audio" investigation (DONE, 2026-07-06).** Turned out to be SSP's
-  Castos player hiding its native `<audio>` behind a fully custom, accessible control skin —
-  documented false positive, no fix needed. Same investigation also fixed two real WAVE alerts
-  (redundant title text, redundant link) via a 5th Code Snippet — built/tested on local, **applied to
-  LIVE and verified (2026-07-06)** via the Playwright MCP against the public site. One incidental,
-  unfixed finding tracked: the player's seek bar isn't keyboard-operable (WCAG 2.1.1) — see
-  [tasks/step-8-home-audio-investigation.md](tasks/step-8-home-audio-investigation.md) and
-  `accessibility-fixes/README.md`.
-- **Uncommitted:** this round's doc updates (`accessibility-fixes/`, `tasks/`, `handover.md`,
-  `known-findings.md`) are not yet committed — same as before, commit via GitHub Desktop when ready.
+- **Step 8 — home-page "hidden audio" investigation (DONE, 2026-07-06), expanded into a full-site
+  accessibility sweep.** The "hidden audio" was SSP's Castos player hiding its native `<audio>` behind
+  a fully custom, accessible control skin — documented false positive, no fix needed. The same
+  investigation (triggered by the manager's WAVE-alert prompt) fixed two real WAVE alerts site-wide
+  (redundant title text, redundant link) via a 5th Code Snippet, then, once broadened to cover
+  buttons/inputs/images too, all **26 pages on the sitemap** were checked (not just home + one
+  episode). That surfaced and fixed two further genuine issues on the Episode List page (`/podcast/`:
+  colliding ARIA labels + nested sidebar landmarks) and led to deleting `/sample-page/` (an unlinked
+  WordPress default page). **Net result: every accessibility flag on the site is now either fixed or
+  explicitly documented** — see `accessibility-fixes/README.md` for the full writeup. A boss-facing
+  summary email was drafted from it. One incidental, unfixed finding remains tracked: the player's seek
+  bar isn't keyboard-operable (WCAG 2.1.1) — see
+  [tasks/step-8-home-audio-investigation.md](tasks/step-8-home-audio-investigation.md).
+- All of this round's changes are **committed to git**.
 - **Deferred:** moving the project to `C:\web\podcast-local` — abandoned for now (Local-managed site;
   a raw move breaks Local).
 

@@ -27,4 +27,14 @@ Two other real WAVE alerts surfaced in the same investigation (redundant link, r
 the header logo + episode list) — fixed via a 5th Code Snippet, see `accessibility-fixes/README.md`
 "Follow-up round (2026-07-06)".
 
+**Full-site sweep (same day, extended scope):** checked all 26 URLs on the sitemap, not just home +
+episode. Broadened the title fix to cover `button`/`input`/`img` (missed Subscribe/Share buttons,
+share icons, form fields, podcast artwork). Found and fixed two new issues on the Episode List page
+(`/podcast/`): colliding ARIA labels across its multiple embedded players, and nested sidebar landmark
+regions. Deleted `/sample-page/` (unedited WordPress default, unlinked, not meant to be public) rather
+than remediating it. Documented the site-wide skip-link `region` finding as an accepted pattern.
+**Result: every accessibility flag on the site is now either fixed or explicitly documented** — see
+`accessibility-fixes/README.md` for the full writeup and a boss-facing email summary was drafted from
+it. All changes committed to git.
+
 ⬅️ Prev: [Step 7 — Build skills](step-7-build-skills.md)
