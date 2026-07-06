@@ -122,11 +122,17 @@ site via the Playwright MCP: both patterns resolved (0 redundant titles, all epi
 correctly `aria-hidden`/`tabindex="-1"`), no new axe violations (the pre-existing unrelated `region`/
 skip-link finding remains, unchanged). See `known-findings.md` items #10/#11 for the full detail.
 
-**Not tackled — logged, not a reported flag:** while confirming the hidden-audio false positive, we
-also noticed the player's seek/progress bar (`.ssp-progress`, `role="progressbar"`) isn't focusable or
-keyboard-operable — only play/pause is. This is a real WCAG 2.1.1 gap, but it wasn't one of the three
-alerts requested, so it hasn't been fixed here. Tracked as pending item #1 in the `wp-a11y-audit`
-skill's `known-findings.md` for a future scoping decision.
+**Fixed (2026-07-06, later same day):** while confirming the hidden-audio false positive, we noticed
+the player's seek/progress bar (`.ssp-progress`, `role="progressbar"`) wasn't focusable or
+keyboard-operable — only play/pause was. It wasn't one of the three alerts requested, but rather than
+leave it as an open item, it's now fixed. Turned out to be a one-line gap: SSP's own player script
+(`castos-player.min.js`) already contains ArrowLeft/ArrowRight keydown handling for this element — it
+was dead code because the div had no `tabindex`, so it could never receive keyboard focus in the first
+place. Setting `role="slider"` + `tabindex="0"` + `aria-label="Seek"` was the entire fix; SSP's
+existing handler does the rest. Verified with a property-setter spy on the underlying `<audio>`
+element: a single ArrowRight press now advances playback by exactly one step (no double-seeking),
+confirmed on both single-episode pages and all 9 players on the Episode List page. See
+`known-findings.md` #14.
 
 ### Broadening the fixes + full-site sweep (2026-07-06, same day)
 
