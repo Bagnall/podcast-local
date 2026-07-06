@@ -5,6 +5,13 @@ The issues found on this site and the fix that resolved each. Fixes are DB-resid
 README/APPLY-TO-LIVE). Applied and verified on live: home + episode + archive + WPForms pages =
 **0 axe violations, 0 W3C errors**.
 
+**Full-site sweep (2026-07-06):** every page on the sitemap (26 URLs — all static pages, all 10 episodes,
+all 3 series taxonomy pages) checked with axe + custom DOM checks. Result: 0 redundant titles anywhere;
+all redundant-link instances correctly `aria-hidden`; the Episode List page (`/podcast/`) had two
+genuinely new violations (fixed, #12 below); `/sample-page/` (WordPress's unedited default placeholder,
+unlinked from navigation) was deleted rather than remediated. Every remaining flag across the site is
+now either fixed or documented below.
+
 ## Fixed
 | # | Issue | WCAG | Fix & layer |
 |---|-------|------|-------------|
@@ -18,8 +25,9 @@ README/APPLY-TO-LIVE). Applied and verified on live: home + episode + archive + 
 | 8 | ~89 invalid CSS declarations (`color:;`, `letter-spacing:px;`, `font-weight:regular`) | (W3C/CSS) | Code Snippet — `sydney_custom_css` filter strips empty/invalid declarations |
 | 9 | HTML-validity: share-URL spaces, `readonly` on button, `on="tap:"`, embed `<input>` newlines, stray `</p>`, `<style>`-in-`<div>` (SSP + WPForms var blocks) | (W3C/HTML) | Code Snippet — output buffer: encode/strip/relocate |
 | ★ | Pre-existing unclosed `@media (max-width:1024px)` brace in Customizer CSS | — | Added the missing `}` |
-| 10 | Redundant title text — header logo link `title` duplicated its own `img alt` (appears twice: desktop + mobile nav) | (WAVE alert) | Code Snippet (footer JS) — strip `title` when it exactly matches the link's own accessible name (own text or child `img alt`) |
-| 11 | Redundant link — episode-list items link the same URL twice adjacently (image-only link + text-title link) | (WAVE alert) | Code Snippet (footer JS) — `aria-hidden="true" tabindex="-1"` on the image-only link when a sibling link in the same `li`/`article` shares its `href` and text/alt |
+| 10 | Redundant title text — `title` duplicating the element's own accessible name (aria-label, own text, own `alt`, or a child `img alt`). Found on: header logo link (desktop+mobile), Subscribe/Share `<button>`s, Facebook/Twitter share-icon links, RSS/Episode-URL/Embed-code `<input>`s (whose `aria-label` was mirrored from `title` by fix #2, leaving `title` redundant), and podcast-artwork `<img>` tags | (WAVE alert) | Code Snippet (footer JS) — strip `title` from `a`/`button`/`input`/`img` when it exactly matches the element's own accessible name. Site-wide sweep (2026-07-06) confirms **0 remaining** across all 26 pages |
+| 11 | Redundant link — episode-list items link the same URL twice adjacently (image-only link + text-title link); confirmed on 4 pages (home + 3 series taxonomy pages) once images were present for every episode | (WAVE alert) | Code Snippet (footer JS) — `aria-hidden="true" tabindex="-1"` on the image-only link when a sibling link in the same `li`/`article` shares its `href` and text/alt. **Real barrier removed** (axe: 0 violations; link excluded from the accessibility tree and tab order) — but WAVE keeps flagging it anyway; see false positive #4 below |
+| 12 | Episode List page (`/podcast/`) only: `landmark-unique` + `landmark-complementary-is-top-level` — this page renders one full player per episode (unlike other listing pages), so SSP's hardcoded `aria-label="Podcast player"` / `"Podcast subscribe and share"` collide across instances, and 6 sidebar widget `<aside>`s nest inside the `#secondary` complementary region | 1.3.1 / 4.1.2 | Code Snippet (footer JS, extends fix #5/#6's snippet) — when 2+ elements share a landmark role + identical label, append that instance's episode title (or a 1-based index) to make each unique; broadened the existing aside→`role="presentation"` selector to include `#secondary aside` |
 
 ## Pending — found, not yet fixed
 | # | Issue | WCAG | Why not tackled yet |
@@ -30,9 +38,11 @@ README/APPLY-TO-LIVE). Applied and verified on live: home + episode + archive + 
 1. Player **contrast** "needs review" (gradient background — real ratio passes).
 2. WPForms **anti-spam honeypot** hidden field (WAVE flag; `aria-hidden` + `tabindex="-1"`).
 3. **Hidden HTML5 audio** (WAVE alert, 2026-07-06) — SSP's Castos player hides its native `<audio class="clip-NNN">` and drives playback through a fully custom, accessible control skin (`<button aria-label="Play Episode" aria-pressed="false">` + a progress bar). axe reports 0 violations for it; un-hiding it would only add a redundant, unstyled second player. See the seek-bar pending item above for the one real (but separate) gap found alongside it.
+4. **Redundant link on episode thumbnails** (WAVE alert, persists after fix #11) — the image-only link is `aria-hidden="true" tabindex="-1"`, confirmed removed from the accessibility tree and tab order, and axe reports 0 violations. WAVE flags `aria-hidden` content in its Alerts category regardless of whether it's correctly hidden — same behavior as false positive #2 (the honeypot). A more invasive fix (merging the image+title into a single wrapping link, server-side) could make WAVE itself show 0, but wasn't judged worth the extra markup surgery given the real barrier is already gone.
+5. **Skip-link not contained in a landmark** (axe `region`, moderate, present site-wide) — Sydney places `<a class="skip-link">Skip to content</a>` before the header, deliberately outside any landmark, so it's the very first focusable element on the page. This is a conventional, widely-used skip-link pattern; accepted as-is rather than fixed.
 
 ## The 5 Code Snippets (in `accessibility-fixes/code-snippets-export.json`)
-1. *Accessibility: landmarks, labels & ARIA (a11y pass)* — footer JS (#2, #5, #6)
+1. *Accessibility: landmarks, labels & ARIA (a11y pass)* — footer JS (#2, #5, #6, #12)
 2. *Accessibility: server-side markup fixes (W3C)* — output buffer (#3, #4)
 3. *Sydney: strip empty CSS declarations (W3C)* — `sydney_custom_css` filter (#8)
 4. *Sydney: HTML validity fixes (W3C)* — output buffer (#9)

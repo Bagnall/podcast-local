@@ -128,6 +128,50 @@ keyboard-operable — only play/pause is. This is a real WCAG 2.1.1 gap, but it 
 alerts requested, so it hasn't been fixed here. Tracked as pending item #1 in the `wp-a11y-audit`
 skill's `known-findings.md` for a future scoping decision.
 
+### Broadening the fixes + full-site sweep (2026-07-06, same day)
+
+The redundant-title fix above only checked `<a title>` elements against the link's own text/`img alt`.
+Re-checking with WAVE directly turned up more instances the narrow version missed:
+- **Subscribe/Share `<button title="Subscribe">Subscribe</button>`** — buttons, not links, so the
+  original `a[title]` selector never reached them.
+- **Facebook/Twitter share-icon links** — `title` duplicated `aria-label` (not visible text/alt), which
+  the original comparison didn't check.
+- **RSS/Episode-URL/Embed-code `<input>` fields** — a side effect of the *original* remediation's fix
+  #2 (mirror `title`→`aria-label`): once `aria-label` exists and equals `title`, the leftover `title`
+  becomes redundant. Only surfaced in WAVE after test podcast images were added, which made more
+  episode rows render their full markup.
+- **Podcast-artwork `<img title="French" alt="French">`** — a bare image with `title` duplicating its
+  own `alt`.
+
+The snippet was broadened to check `a`, `button`, `input`, and `img`, and to compare `title` against
+`aria-label` as well as own text/alt. Verified 0 remaining across local, then applied to live the same
+way (edit the existing snippet).
+
+With that resolved, we checked **every page on the site** (26 URLs from the sitemap: all static pages,
+all 10 episodes, both series and archive listings) rather than just the two pages checked so far.
+Result:
+- Redundant title text: **0 remaining, all 26 pages.**
+- Redundant link: found on 4 pages (home + French/Spanish/English series pages) — all correctly
+  `aria-hidden`, same false positive as documented above (WAVE keeps flagging it; the real barrier is
+  gone).
+- Hidden audio: present on every episode-bearing page — always the same documented false positive.
+- **New finding, fixed:** the Episode List page (`/podcast/`) renders a full player per episode (unlike
+  other listing pages), so SSP's hardcoded `aria-label="Podcast player"` / `"Podcast subscribe and
+  share"` collided across instances (axe `landmark-unique`), and 6 sidebar widgets nested inside
+  another landmark region (axe `landmark-complementary-is-top-level`). Fixed by extending the original
+  landmarks/ARIA snippet: labels get the episode title appended when duplicated, and the aside→
+  `role="presentation"` fix was broadened to the sidebar. See `known-findings.md` #12.
+- **New finding, resolved by deletion:** `/sample-page/` — WordPress's unedited default placeholder
+  page, not linked from navigation, had the same "link distinguished by colour only" issue as the very
+  first fix in this project. Deleted rather than remediated, since it shouldn't have been public.
+- **New finding, documented as accepted:** the home page (and every page, via the shared header) shows
+  an axe `region` violation — the skip-link sits before the header, outside any landmark, so it's the
+  first focusable element on the page. This is a conventional skip-link placement; left as-is. See
+  `known-findings.md` false positive #5.
+
+**Current state, verified 2026-07-06: every accessibility flag on the site is either fixed or explicitly
+documented — none are silently outstanding.**
+
 ## Important caveat
 These fixes live in the database (the `custom_css` option + the `wp_snippets` table). Re-importing a
 live UpdraftPlus database into the local mirror will overwrite them locally. The live site is the
