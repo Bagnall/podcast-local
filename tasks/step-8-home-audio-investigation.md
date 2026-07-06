@@ -1,28 +1,30 @@
 # Step 8 — Investigate the "hidden audio" problem on the home page
 
-**Status:** ☐ Not started (reported, no details captured yet)
+**Status:** ✅ Done (investigated 2026-07-06; documented false positive, no fix needed)
 
 ## Goal
 The user reported a **hidden audio problem on the home page**
-(`http://podcast-local.local/` locally / `https://podcast.langcen.cam.ac.uk/` live). We had not started
-investigating when this handover was prepared — no specifics gathered.
+(`http://podcast-local.local/` locally / `https://podcast.langcen.cam.ac.uk/` live).
 
-## First moves for a fresh session
-1. **Ask the user what "hidden audio" means** — e.g. a clip that autoplays with no visible player, a
-   hidden/duplicate `<audio>` element, an off-screen player, sound with no controls, or a
-   screen-reader/announcement issue. This shapes everything.
-2. **Inspect the home page via the Playwright MCP** (`wp-a11y-audit` / the MCP directly):
-   - Enumerate every `<audio>` and `.castos-player` on the page: their `display`/`visibility`, bounding
-     box, `autoplay` / `muted` / `preload` / `loop` attributes, and whether any is present in the DOM but
-     visually hidden.
-   - The home page renders the SSP **featured Castos player** + an **episode-list block** — likely
-     suspects: a second/hidden player instance, an autoplaying element, or an `aria-hidden` media control.
-   - Check the console/network for audio requests firing on load.
-3. **Fix at the right layer** with `wp-safe-fix` (CSS to hide/adjust, or a Code Snippet if markup/behaviour
-   needs changing). Never edit theme/plugin files. Export to `accessibility-fixes/` and apply to live.
+## Outcome
+Triggered again independently as a WAVE "hidden HTML5 video" alert (via the site owner's manager) —
+same underlying element. Investigated on 2026-07-06 using axe-core + manual DOM inspection via the
+Playwright MCP:
 
-## Context
-- SSP = Seriously Simple Podcasting 3.16.2; player is the server-rendered "Castos" player.
-- See `wp-a11y-audit` skill (`references/known-findings.md`) and the `sydney-css-a11y-overrides` memory.
+- The "hidden audio" is a single `<audio class="clip-NNN">` (`display:none`), the actual playback
+  engine behind SSP's Castos player, paired with a fully custom, accessible control skin (a real
+  `<button aria-label="Play Episode" aria-pressed="false">`, keyboard-operable; a progress bar).
+  **axe reports 0 violations for it.**
+- **Verdict: documented false positive, left as-is.** Un-hiding the native element would just show a
+  redundant, unstyled second player with no accessibility benefit — same category as the WPForms
+  honeypot false positive. Full detail in `accessibility-fixes/README.md` and the `wp-a11y-audit`
+  skill's `known-findings.md` (false positive #3).
+- **Incidental finding, not fixed:** the player's seek/progress bar (`role="progressbar"`) isn't
+  focusable, so seeking is mouse-only (WCAG 2.1.1) — separate from the hidden-audio alert, not one of
+  the reported flags. Tracked as pending item #1 in `known-findings.md` for a future scoping decision.
+
+Two other real WAVE alerts surfaced in the same investigation (redundant link, redundant title text on
+the header logo + episode list) — fixed via a 5th Code Snippet, see `accessibility-fixes/README.md`
+"Follow-up round (2026-07-06)".
 
 ⬅️ Prev: [Step 7 — Build skills](step-7-build-skills.md)

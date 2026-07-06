@@ -1,6 +1,6 @@
 /*
- * Accessibility fixes for the Customizer -> Additional CSS box.
- * Paste this block at the END of Appearance -> Customize -> Additional CSS on the LIVE site.
+ * Exported Customizer Additional CSS (marker prefix: A11Y FIX).
+ * Paste at the TOP of Appearance -> Customize -> Additional CSS on the target site.
  */
 
 /* === A11Y FIX 1: link-in-text-block (WCAG 1.4.1) === */

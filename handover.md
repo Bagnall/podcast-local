@@ -74,10 +74,16 @@ completion before moving on.** Keep that style.
   approach, the shaping questions to ask, and skill locations are in
   [tasks/step-7-build-skills.md](tasks/step-7-build-skills.md). A fresh session has skills 1–3 loaded
   automatically.
-- **Step 8 — home-page "hidden audio" investigation (NOT STARTED).** User reported it; no details
-  captured yet. Start by asking what "hidden audio" means, then inspect the home page's `<audio>` /
-  `.castos-player` elements via the Playwright MCP. See
-  [tasks/step-8-home-audio-investigation.md](tasks/step-8-home-audio-investigation.md).
+- **Step 8 — home-page "hidden audio" investigation (DONE, 2026-07-06).** Turned out to be SSP's
+  Castos player hiding its native `<audio>` behind a fully custom, accessible control skin —
+  documented false positive, no fix needed. Same investigation also fixed two real WAVE alerts
+  (redundant title text, redundant link) via a 5th Code Snippet — built/tested on local, **applied to
+  LIVE and verified (2026-07-06)** via the Playwright MCP against the public site. One incidental,
+  unfixed finding tracked: the player's seek bar isn't keyboard-operable (WCAG 2.1.1) — see
+  [tasks/step-8-home-audio-investigation.md](tasks/step-8-home-audio-investigation.md) and
+  `accessibility-fixes/README.md`.
+- **Uncommitted:** this round's doc updates (`accessibility-fixes/`, `tasks/`, `handover.md`,
+  `known-findings.md`) are not yet committed — same as before, commit via GitHub Desktop when ready.
 - **Deferred:** moving the project to `C:\web\podcast-local` — abandoned for now (Local-managed site;
   a raw move breaks Local).
 

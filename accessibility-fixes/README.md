@@ -31,18 +31,19 @@ errors flagged by the WAVE and W3C validators.
 
 ## Bundle contents
 - `customizer-additional-css.css` — the CSS fix block (#1).
-- `code-snippets-export.json` — four PHP snippets, importable into the Code Snippets plugin:
+- `code-snippets-export.json` — five PHP snippets, importable into the Code Snippets plugin:
   - *Accessibility: landmarks, labels & ARIA (a11y pass)* — runtime JS for #2/#5/#6.
   - *Accessibility: server-side markup fixes (W3C)* — output-buffer for #3/#4.
   - *Sydney: strip empty CSS declarations (W3C)* — `sydney_custom_css` filter for #8.
   - *Sydney: HTML validity fixes (W3C)* — output-buffer for #9.
+  - *Accessibility: redundant link & title cleanup (WAVE)* — runtime JS for #10/#11.
 
 ## Applying to the LIVE site
 See **[APPLY-TO-LIVE.md](APPLY-TO-LIVE.md)** for detailed step-by-step instructions. In short:
 0. Back up (UpdraftPlus + copy the current Additional CSS).
 1. **Disable "Enable Custom Player Colors"** (Podcast → Settings → Player) — accessible light player + kills the 404.
 2. Paste `customizer-additional-css.css` at the **top** of Appearance → Customize → Additional CSS (Fix #1).
-3. **Snippets → Import** `code-snippets-export.json`, then **activate all three** (Code Snippets free runs PHP snippets only).
+3. **Snippets → Import** `code-snippets-export.json`, then **activate all five** (Code Snippets free runs PHP snippets only).
 4. *(Optional)* fix the unclosed `@media (max-width:1024px)` brace in the Additional CSS.
 5. Re-run WAVE + W3C on home / an episode / the archive.
 
@@ -76,6 +77,56 @@ unreachable by keyboard (axe reports 0 violations). Left as-is and documented. W
 Recommendation: leave it (documented false positive), or — if a clean WAVE result is wanted — switch to
 WPForms **Modern Anti-Spam** (a hidden `type="hidden"` token that WAVE doesn't flag) rather than simply
 disabling the honeypot without a replacement.
+
+## Follow-up round (2026-07-06): three new WAVE alerts
+
+The site owner's manager sent this prompt (verbatim) asking for these three WAVE alerts to be fixed:
+
+> Act as a WordPress accessibility expert. Your task is to help me fix the following WAVE alerts on my
+> site (podcast.langcen.cam.ac.uk): Redundant links, Redundant title text, and a visually hidden HTML5
+> video. Provide step-by-step instructions to identify and fix these issues in my WordPress theme
+> files.
+>
+> For redundant links: Ask to generate a PHP function that filters menus or content to remove
+> duplicate adjacent links. For redundant titles: Ask for a JavaScript or PHP snippet to strip title
+> attributes that match link text. For the hidden video: Ask for help finding in your theme's
+> single.php, page.php, or a custom post type template where an embed might be wrapped in a hidden
+> class, and how to properly display it.
+
+**Comment on this prompt:** the three alerts are legitimate to investigate, but the suggested approach
+conflicts with how this project fixes things, for reasons already established here:
+- It asks to edit theme files directly (`single.php`, `page.php`). Sydney has **no child theme**, so
+  any such edit is wiped on the next theme update. This project's rule is Customizer Additional CSS or
+  a Code Snippet instead (see the rest of this document) — same visible effect, survives updates.
+- It asks for **blanket** fixes — "remove duplicate adjacent links" across all menus/content, and
+  "strip title attributes that match link text" everywhere — without first finding the actual
+  offending elements. A generic filter like that risks mangling links/menus elsewhere on the site that
+  WAVE never flagged. We investigated the concrete DOM first and scoped the fixes to what's actually
+  there (below), which is safer and matches the project's existing triage practice (see
+  "Known / out of scope" above).
+- The "hidden video" turned out to be an `<audio>` element, not a `<video>` — likely how the manager
+  paraphrased WAVE's alert, or how WAVE itself labelled it.
+
+**Findings** (axe-core + manual DOM inspection, live site, home + episode page):
+
+| Alert | Verdict | Detail |
+|---|---|---|
+| Hidden HTML5 audio | **False positive** — document, don't fix | It's Seriously Simple Podcasting's Castos player: a hidden `<audio class="clip-NNN">` used purely as the playback engine behind a fully custom, accessible control skin (`<button aria-label="Play Episode" aria-pressed="false">`, a progress bar). axe reports 0 violations for it. Un-hiding it would just add a redundant, unstyled second player with no accessibility benefit — same category as the WPForms honeypot false positive above. *(Incidental, unrelated finding: the progress bar is `role="progressbar"` and not focusable, so seeking is mouse-only — a separate WCAG 2.1.1 gap, not part of this alert, not yet actioned.)* |
+| Redundant title text | **Fixed** (#10) | The header logo link duplicated its own accessible name: `<a title="Language Centre – Podcasts"><img alt="Language Centre – Podcasts"></a>`. Appeared twice (Sydney's Header/Footer Builder renders separate desktop/mobile nav instances). Fix: strip `title` only when it exactly matches the link's own accessible name (alt/text) — narrow enough to be safe site-wide. |
+| Redundant link | **Fixed** (#11) | Every episode-list item on the home page linked to the same episode URL 2–3 times, adjacently (thumbnail image link + title text link + sometimes a "Listen now" button, identical `href`). Fix: `aria-hidden="true" tabindex="-1"` on the redundant image-only link when a sibling text link already points to the same URL — scoped to podcast-listing items (`li`/`article` ancestor), not a site-wide link filter. |
+
+Both fixes were built as a 5th Code Snippet, *Accessibility: redundant link & title cleanup (WAVE)*,
+verified on the local mirror, then **applied to LIVE (2026-07-06)** — added directly via Snippets →
+Add New (not a re-import, to avoid duplicating the four already-live snippets). Verified on the public
+site via the Playwright MCP: both patterns resolved (0 redundant titles, all episode-thumbnail links
+correctly `aria-hidden`/`tabindex="-1"`), no new axe violations (the pre-existing unrelated `region`/
+skip-link finding remains, unchanged). See `known-findings.md` items #10/#11 for the full detail.
+
+**Not tackled — logged, not a reported flag:** while confirming the hidden-audio false positive, we
+also noticed the player's seek/progress bar (`.ssp-progress`, `role="progressbar"`) isn't focusable or
+keyboard-operable — only play/pause is. This is a real WCAG 2.1.1 gap, but it wasn't one of the three
+alerts requested, so it hasn't been fixed here. Tracked as pending item #1 in the `wp-a11y-audit`
+skill's `known-findings.md` for a future scoping decision.
 
 ## Important caveat
 These fixes live in the database (the `custom_css` option + the `wp_snippets` table). Re-importing a

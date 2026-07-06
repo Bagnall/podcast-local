@@ -18,16 +18,25 @@ README/APPLY-TO-LIVE). Applied and verified on live: home + episode + archive + 
 | 8 | ~89 invalid CSS declarations (`color:;`, `letter-spacing:px;`, `font-weight:regular`) | (W3C/CSS) | Code Snippet — `sydney_custom_css` filter strips empty/invalid declarations |
 | 9 | HTML-validity: share-URL spaces, `readonly` on button, `on="tap:"`, embed `<input>` newlines, stray `</p>`, `<style>`-in-`<div>` (SSP + WPForms var blocks) | (W3C/HTML) | Code Snippet — output buffer: encode/strip/relocate |
 | ★ | Pre-existing unclosed `@media (max-width:1024px)` brace in Customizer CSS | — | Added the missing `}` |
+| 10 | Redundant title text — header logo link `title` duplicated its own `img alt` (appears twice: desktop + mobile nav) | (WAVE alert) | Code Snippet (footer JS) — strip `title` when it exactly matches the link's own accessible name (own text or child `img alt`) |
+| 11 | Redundant link — episode-list items link the same URL twice adjacently (image-only link + text-title link) | (WAVE alert) | Code Snippet (footer JS) — `aria-hidden="true" tabindex="-1"` on the image-only link when a sibling link in the same `li`/`article` shares its `href` and text/alt |
+
+## Pending — found, not yet fixed
+| # | Issue | WCAG | Why not tackled yet |
+|---|-------|------|----------------------|
+| 1 | Castos player seek/progress bar (`.ssp-progress`, `role="progressbar"`) is not focusable and has no keyboard handler — play/pause work via the real `.play-btn` `<button>`, but seeking is mouse-only | 2.1.1 (Keyboard) | Found 2026-07-06 as an incidental discovery while investigating the "hidden HTML5 audio" WAVE alert (see false positive #3 below) — it is not one of the flags that were actually reported. Deferred pending a decision on whether to scope it in; would need a Code Snippet adding keyboard (arrow-key) seek handling to the progress bar, since the SSP plugin file itself can't be edited. |
 
 ## Documented false positives (left as-is)
-- Player **contrast** "needs review" (gradient background — real ratio passes).
-- WPForms **anti-spam honeypot** hidden field (WAVE flag; `aria-hidden` + `tabindex="-1"`).
+1. Player **contrast** "needs review" (gradient background — real ratio passes).
+2. WPForms **anti-spam honeypot** hidden field (WAVE flag; `aria-hidden` + `tabindex="-1"`).
+3. **Hidden HTML5 audio** (WAVE alert, 2026-07-06) — SSP's Castos player hides its native `<audio class="clip-NNN">` and drives playback through a fully custom, accessible control skin (`<button aria-label="Play Episode" aria-pressed="false">` + a progress bar). axe reports 0 violations for it; un-hiding it would only add a redundant, unstyled second player. See the seek-bar pending item above for the one real (but separate) gap found alongside it.
 
-## The 4 Code Snippets (in `accessibility-fixes/code-snippets-export.json`)
+## The 5 Code Snippets (in `accessibility-fixes/code-snippets-export.json`)
 1. *Accessibility: landmarks, labels & ARIA (a11y pass)* — footer JS (#2, #5, #6)
 2. *Accessibility: server-side markup fixes (W3C)* — output buffer (#3, #4)
 3. *Sydney: strip empty CSS declarations (W3C)* — `sydney_custom_css` filter (#8)
 4. *Sydney: HTML validity fixes (W3C)* — output buffer (#9)
+5. *Accessibility: redundant link & title cleanup (WAVE)* — footer JS (#10, #11)
 
 ## Gotchas learned
 - Sydney resets links with `:root .site :where(a…){text-decoration:none !important}` (0,2,0) — overrides

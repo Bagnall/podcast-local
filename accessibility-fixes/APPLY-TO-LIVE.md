@@ -119,6 +119,97 @@ only apply on narrow screens. Separate layout bug (not accessibility). Putting P
 
 ---
 
+## Part 6 — Follow-up round (2026-07-06): redundant link & title cleanup
+
+**Why:** fixes two WAVE alerts found in a follow-up review — the header logo's `title` duplicating its
+own `alt` text, and episode-list thumbnails linking the same URL twice adjacently (image + title).
+See `README.md` "Follow-up round" for full detail. This is a **single new snippet**, not a re-import —
+the other four snippets from Part 3 are already live, and re-importing the whole export file would
+create duplicates of those.
+
+1. **Safety net:** take a fresh UpdraftPlus database backup (Part 0, step 2) — the content has changed
+   since the last backup.
+2. In the live admin: **Snippets → Add New**.
+3. **Title:** `Accessibility: redundant link & title cleanup (WAVE)`
+4. Paste this into the code editor (no `<?php` tag needed — the editor adds it):
+
+   ```php
+   add_action( 'wp_footer', function () {
+       ?>
+   <script id="a11y-redundant-link-title-fix">
+   (function () {
+     function findItemAncestor(el) {
+       var node = el;
+       for (var i = 0; i < 6 && node; i++) {
+         if (node.tagName === 'LI' || node.tagName === 'ARTICLE') return node;
+         node = node.parentElement;
+       }
+       return null;
+     }
+
+     function run() {
+       // Redundant title text: title duplicates the link's own accessible name (own text, or child img alt)
+       document.querySelectorAll('a[title]').forEach(function (a) {
+         var title = (a.getAttribute('title') || '').trim();
+         if (!title) return;
+         var img = a.querySelector('img[alt]');
+         var ownText = img ? (img.getAttribute('alt') || '').trim() : (a.textContent || '').trim();
+         if (ownText && title.toLowerCase() === ownText.toLowerCase()) {
+           a.removeAttribute('title');
+         }
+       });
+
+       // Redundant link: an image-only link duplicating a nearby text link to the same URL
+       document.querySelectorAll('a[href] > img:only-child').forEach(function (img) {
+         var a = img.parentElement;
+         if ((a.textContent || '').trim() !== '') return;
+         var item = findItemAncestor(a);
+         if (!item) return;
+         var alt = (img.getAttribute('alt') || '').trim().toLowerCase();
+         if (!alt) return;
+         var href = a.getAttribute('href');
+         if (!href) return;
+         var candidates = item.querySelectorAll('a[href="' + href.replace(/"/g, '\\"') + '"]');
+         candidates.forEach(function (b) {
+           if (b === a) return;
+           var btext = (b.textContent || '').trim().toLowerCase();
+           if (btext && (btext === alt || alt.indexOf(btext) !== -1 || btext.indexOf(alt) !== -1)) {
+             a.setAttribute('aria-hidden', 'true');
+             a.setAttribute('tabindex', '-1');
+           }
+         });
+       });
+     }
+
+     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
+   })();
+   </script>
+       <?php
+   }, 99 );
+   ```
+
+5. Under **"Where to run"**, choose **"Only run on site front-end"** (matches the other four snippets —
+   Code Snippets free only executes PHP-type snippets).
+6. Click **Save Changes and Activate**.
+
+✅ Done when: the snippet shows **Active**.
+
+### Verify
+1. Open the live home page, hard-refresh (**Ctrl + F5**).
+2. **View page source** (Ctrl+U) won't show the fix (it's added by JS after load) — instead use the
+   browser DevTools **Elements** panel:
+   - Inspect the header logo link — its `title` attribute should be gone.
+   - Inspect an episode-list thumbnail image's parent `<a>` — it should now have
+     `aria-hidden="true" tabindex="-1"`, while the text-title link next to it does not.
+3. Re-run **WAVE** (https://wave.webaim.org/) on the home page → the "Redundant link" and "Redundant
+   title text" alerts should be gone. The "hidden HTML5 video/audio" alert will still appear — that one
+   is a documented false positive (see README), not something to fix.
+
+### If you need to undo this part
+Snippets → find *Accessibility: redundant link & title cleanup (WAVE)* → Deactivate or Delete.
+
+---
+
 ## If you need to undo
 - **Player colours:** Podcast → Settings → Player → re-tick "Enable Custom Player Colors" → Save.
 - **CSS:** paste your `live-additional-css-backup.txt` back → Publish.
