@@ -28,6 +28,7 @@ now either fixed or documented below.
 | 10 | Redundant title text — `title` duplicating the element's own accessible name (aria-label, own text, own `alt`, or a child `img alt`). Found on: header logo link (desktop+mobile), Subscribe/Share `<button>`s, Facebook/Twitter share-icon links, RSS/Episode-URL/Embed-code `<input>`s (whose `aria-label` was mirrored from `title` by fix #2, leaving `title` redundant), and podcast-artwork `<img>` tags | (WAVE alert) | Code Snippet (footer JS) — strip `title` from `a`/`button`/`input`/`img` when it exactly matches the element's own accessible name. Site-wide sweep (2026-07-06) confirms **0 remaining** across all 26 pages |
 | 11 | Redundant link — episode-list items link the same URL twice adjacently (image-only link + text-title link); confirmed on 4 pages (home + 3 series taxonomy pages) once images were present for every episode | (WAVE alert) | Code Snippet (footer JS) — `aria-hidden="true" tabindex="-1"` on the image-only link when a sibling link in the same `li`/`article` shares its `href` and text/alt. **Real barrier removed** (axe: 0 violations; link excluded from the accessibility tree and tab order) — but WAVE keeps flagging it anyway; see false positive #4 below |
 | 12 | Episode List page (`/podcast/`) only: `landmark-unique` + `landmark-complementary-is-top-level` — this page renders one full player per episode (unlike other listing pages), so SSP's hardcoded `aria-label="Podcast player"` / `"Podcast subscribe and share"` collide across instances, and 6 sidebar widget `<aside>`s nest inside the `#secondary` complementary region | 1.3.1 / 4.1.2 | Code Snippet (footer JS, extends fix #5/#6's snippet) — when 2+ elements share a landmark role + identical label, append that instance's episode title (or a 1-based index) to make each unique; broadened the existing aside→`role="presentation"` selector to include `#secondary aside` |
+| 13 | W3C info/warning, site-wide: redundant `type="text/javascript"` on CookieYes's injected `<script>` tag; redundant `role="main"` on `<main id="main">` (already implicit in HTML5); trailing slash on 48 self-closing void elements (`<meta … />`, `<link … />`, etc. — no effect in HTML5, purely noise) | (W3C info/warning) | Code Snippet (server-side output buffer, extends fix #9's snippet) — strip the redundant `type` attr from `<script>` tags, strip `role="main"` from `<main>`, and strip the trailing `/` from any void element's self-closing form. Verified **0 W3C messages of any kind** (not just 0 errors) across all 25 pages checked |
 
 ## Pending — found, not yet fixed
 | # | Issue | WCAG | Why not tackled yet |
@@ -45,7 +46,7 @@ now either fixed or documented below.
 1. *Accessibility: landmarks, labels & ARIA (a11y pass)* — footer JS (#2, #5, #6, #12)
 2. *Accessibility: server-side markup fixes (W3C)* — output buffer (#3, #4)
 3. *Sydney: strip empty CSS declarations (W3C)* — `sydney_custom_css` filter (#8)
-4. *Sydney: HTML validity fixes (W3C)* — output buffer (#9)
+4. *Sydney: HTML validity fixes (W3C)* — output buffer (#9, #13)
 5. *Accessibility: redundant link & title cleanup (WAVE)* — footer JS (#10, #11)
 
 ## Gotchas learned

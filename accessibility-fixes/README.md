@@ -172,6 +172,29 @@ Result:
 **Current state, verified 2026-07-06: every accessibility flag on the site is either fixed or explicitly
 documented — none are silently outstanding.**
 
+## W3C validator warnings (2026-07-06, separate follow-up)
+
+The site owner's manager also wanted every W3C Nu validator message addressed, not just accessibility
+alerts — including plain "info"/"warning" notices, which are much lower severity than errors but still
+show up in the report. Running the validator against the home page's static HTML (not just axe's
+runtime DOM check) surfaced 50 messages, none of them `error` type (consistent with the "0 W3C errors"
+result above), split into:
+
+| Message | Count | Source |
+|---|---|---|
+| `The "type" attribute is unnecessary for JavaScript resources.` | 1 | CookieYes's injected `<script id="cookieyes" type="text/javascript" …>` tag |
+| `The "main" role is unnecessary for element "main".` | 1 | `<main id="main" class="post-wrap" role="main">` — the role is already implicit on `<main>` in HTML5 |
+| `Trailing slash on void elements has no effect…` | 48 | Self-closing void elements (`<meta … />`, `<link … />`, etc.) emitted throughout by WordPress core/theme/plugins — harmless in HTML5, but flagged as noise |
+
+All three are safe, well-understood HTML5 cleanups (removing them changes nothing about how the page
+renders or behaves). Fixed by extending the existing *Sydney: HTML validity fixes (W3C)* Code
+Snippet (output buffer, `template_redirect`) with three more `preg_replace` passes — see
+`known-findings.md` #13. Since the hook runs on every front-end page (not just home), the fix applies
+site-wide automatically.
+
+**Verified 2026-07-06:** re-ran the W3C validator against all 25 pages on the site (home + 24 others)
+after the fix — **0 messages of any kind on every single page**, not just 0 errors.
+
 ## Important caveat
 These fixes live in the database (the `custom_css` option + the `wp_snippets` table). Re-importing a
 live UpdraftPlus database into the local mirror will overwrite them locally. The live site is the
