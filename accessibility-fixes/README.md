@@ -201,6 +201,42 @@ site-wide automatically.
 **Verified 2026-07-06:** re-ran the W3C validator against all 25 pages on the site (home + 24 others)
 after the fix — **0 messages of any kind on every single page**, not just 0 errors.
 
+## Cloudflare Turnstile rollout (2026-07-07)
+
+The site owner's manager asked for the WPForms **anti-spam honeypot** field on `/register-for-updates/`
+(previously documented as a false positive — see `known-findings.md` false positive #2) to be replaced
+with a **Cloudflare Turnstile** CAPTCHA, per
+[WPForms' setup guide](https://wpforms.com/docs/setting-up-cloudflare-turnstile/). This is a WPForms
+plugin **setting**, not a theme/plugin file edit or even a Code Snippet — configured entirely via
+**WPForms → Settings → CAPTCHA** (global provider + keys) and **per-form Settings → Spam Protection and
+Security** (enable Turnstile, disable the honeypot).
+
+**Pre-flight risk assessment:** before building anything, we checked the actual installed WPForms code
+(not just the doc) to predict likely false positives:
+- W3C validator: expected clean, since the widget is inserted entirely by JavaScript after page load
+  (same pattern as CookieYes and the podcast player) — confirmed, 0 messages before and after.
+- axe: Cloudflare designs Turnstile with accessibility as an explicit goal, so a real violation seemed
+  unlikely for the visible ("Managed" mode) widget itself — but WPForms' own code prints a **second,
+  separate hidden input** (`.wpforms-recaptcha-hidden`) purely for internal JS validation, and that one
+  looked like a plausible candidate for the "hidden content" false-positive pattern already documented
+  elsewhere on this site (honeypot, hidden audio, aria-hidden thumbnail links).
+
+**What we found, once actually running it:**
+- The Turnstile widget itself (Managed mode): renders a real Cloudflare iframe with a proper accessible
+  name (`title="Widget containing a Cloudflare security challenge"`). **0 axe violations, 0 W3C
+  messages** attributable to it.
+- The prediction was right, but about the wrong element: WPForms' `.wpforms-recaptcha-hidden` helper
+  input (visually clipped, used by WPForms' own JS to gate submission until Turnstile passes) had
+  **no label and no `aria-hidden`** — a genuine, critical axe `label` violation, not a WAVE-only
+  quirk. Fixed with the same treatment as the honeypot it replaced: `aria-hidden="true"
+  tabindex="-1"`. See `known-findings.md` fix #15.
+- One unrelated, pre-existing item surfaced while checking: CookieYes's own "Consent Preferences"
+  button triggers an axe `aria-valid-attr-value` incomplete (its `aria-controls` target is lazily
+  rendered). Not part of this change; not actioned.
+
+**Verified 2026-07-07**, both local and live: honeypot field gone, Turnstile widget functional, 0 axe
+violations (only the pre-existing site-wide skip-link `region` finding remains), 0 W3C messages.
+
 ## Important caveat
 These fixes live in the database (the `custom_css` option + the `wp_snippets` table). Re-importing a
 live UpdraftPlus database into the local mirror will overwrite them locally. The live site is the
