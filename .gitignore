@@ -15,7 +15,8 @@
 !/tasks/
 !/accessibility-fixes/
 
-# Track project skills, but NOT the rest of .claude/ (e.g. settings.local.json has machine paths)
+# Track project skills and commands, but NOT the rest of .claude/ (e.g. settings.local.json has machine paths)
 !/.claude/
 /.claude/*
 !/.claude/skills/
+!/.claude/commands/
