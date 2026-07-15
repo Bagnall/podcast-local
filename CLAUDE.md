@@ -20,7 +20,8 @@ eventually wire it to an MCP. Built with the **Local** app (by WP Engine).
 
 ## Key facts
 - WP root: `app/public/`. Local site URL: `http://podcast-local.local`.
-- Target: WordPress **7.0**, **Sydney** theme, **Seriously Simple Podcasting** **3.16.2**.
+- Target: WordPress **7.0**, **Sydney** theme, **Seriously Simple Podcasting** **3.16.3** (local updated
+  from 3.16.2 on 2026-07-15; 3.16.3 fixes several Castos-player a11y/HTML issues natively — see below).
 - Live DB imported from an **UpdraftPlus `-db.gz`** (not cPanel). Never raw SQL find/replace the
   domain — use WP-CLI `search-replace` (serialized data).
 
@@ -47,7 +48,7 @@ layers, plus a fixed set of "where to patch" rules:
   `inc/modules/hf-builder/components/header/.../menu.php` (desktop `#site-navigation`, mobile `#mainnav`);
   classic fallbacks in `inc/classes/class-sydney-header.php`. These `<nav>` wrappers are hardcoded with no
   attribute filter.
-- **Seriously Simple Podcasting** (`…/plugins/seriously-simple-podcasting/`, pinned **3.16.2**): the
+- **Seriously Simple Podcasting** (`…/plugins/seriously-simple-podcasting/`, **3.16.3**): the
   "Castos" player is **server-rendered** from `templates/players/castos-player.php`; meta line + subscribe/
   share panels from `php/classes/controllers/class-players-controller.php`. Its dynamic colour stylesheet
   `uploads/ssp/css/ssp-dynamic-style.css` regenerates only when player colour settings are saved — absent
@@ -74,8 +75,16 @@ layers, plus a fixed set of "where to patch" rules:
 - **Playwright MCP connected** (Step 5). **Accessibility remediation done** (Step 6): 0 axe violations
   across 6 page types + 0 a11y-related W3C errors; fixes exported to `accessibility-fixes/`.
 - **Applied to LIVE (2026-07-01)** — user-applied under guidance; verified via public fetch + MCP:
-  0 axe violations + 0 a11y-related W3C errors on home + episode. (Live emits `role="group"` on the
-  player panel row where local 3.16.2 doesn't — likely a second a11y plugin on live; harmless.)
+  0 axe violations + 0 a11y-related W3C errors on home + episode.
+- **SSP 3.16.3 upgrade (2026-07-15):** local updated 3.16.2 → 3.16.3; 3.16.3 fixes the player
+  `aria-label`-on-div (#3) and heading-skip (#4) natively (it now emits `role="group"` — this explains
+  the old "live emits role='group'" note; it was a newer SSP, not a second plugin). Retired the
+  *server-side markup fixes (W3C)* snippet (**5 → 4 snippets**); patched snippets #2/#10 for SSP's new
+  Embed `<textarea>`. Re-verified 0 axe / 0 W3C on local. Also fixed the axe `region` skip-link alert
+  ("all page content contained by landmarks") by wrapping Sydney's skip-link in a labelled `<nav>` —
+  note it only shows once the Sydney **preloader** clears, so audit at `networkidle` (mid-load axe runs
+  give a false "0 region"). **Live still needs all these deltas** — see
+  `accessibility-fixes/APPLY-TO-LIVE.md` Part 7.
 - Reusable cleanup after any re-import: `post-import-runbook` memory. Runtime paths (MySQL port 10005,
   php/wp-cli binaries): `local-env-details` memory. A11y fix details: `sydney-css-a11y-overrides` memory.
 

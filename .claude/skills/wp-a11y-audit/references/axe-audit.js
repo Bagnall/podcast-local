@@ -6,7 +6,11 @@
 //    Returns violations (real, by rule) + incomplete (needs-review).
 // ============================================================================
 async (page) => {
-  // await page.goto('http://podcast-local.local/', { waitUntil: 'domcontentloaded' });
+  // IMPORTANT: audit at STEADY STATE. Sydney shows a full-screen `.preloader` overlay that JS removes
+  // shortly after load; while it's up, axe's `region` rule (and other visibility-dependent checks)
+  // give false NEGATIVES. Navigate with { waitUntil: 'networkidle' } — NOT 'domcontentloaded' — or the
+  // skip-link `region` finding will be missed. (Learned 2026-07-15; see known-findings.md #16 + gotchas.)
+  // await page.goto('http://podcast-local.local/', { waitUntil: 'networkidle' });
   await page.addScriptTag({ url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js' });
   const out = await page.evaluate(async () => {
     // {} = all rules incl. best-practice. For WCAG-only use:

@@ -76,14 +76,16 @@ line-feeds, a stray `</p>`). These are PHP snippets (the free Code Snippets plug
 
 1. Copy `code-snippets-export.json` (in this folder) somewhere easy, like your Desktop.
 2. In the live admin: **Snippets → Import** → **Choose File** → select it → **Upload files and import**.
-3. Four new snippets appear, all **inactive (grey)**:
+3. Three new snippets appear, all **inactive (grey)**:
    - *Accessibility: landmarks, labels & ARIA (a11y pass)*
-   - *Accessibility: server-side markup fixes (W3C)*
    - *Sydney: strip empty CSS declarations (W3C)*
    - *Sydney: HTML validity fixes (W3C)*
-4. **Activate all four** (they turn active/blue).
 
-✅ Done when: all four snippets show **Active**.
+   *(The bundle no longer includes "Accessibility: server-side markup fixes (W3C)" — SSP 3.16.3 fixes
+   #3/#4 natively. The fifth snippet, "redundant link & title cleanup", is added separately in Part 6.)*
+4. **Activate all three** (they turn active/blue).
+
+✅ Done when: the three snippets show **Active**.
 
 ---
 
@@ -207,6 +209,64 @@ create duplicates of those.
 
 ### If you need to undo this part
 Snippets → find *Accessibility: redundant link & title cleanup (WAVE)* → Deactivate or Delete.
+
+---
+
+## Part 7 — SSP 3.16.3 delta (2026-07-15): retire one snippet + patch two for the new `<textarea>`
+
+**Only relevant once the live site is running Seriously Simple Podcasting 3.16.3+** (check **Plugins** →
+Seriously Simple Podcasting version). 3.16.3 fixes the player's `aria-label`-on-div (#3) and heading-skip
+(#4) natively, but its change of the Embed field from `<input>` to `<textarea>` created a new
+`label-title-only` accessibility violation that the already-live snippets don't catch.
+
+**Why:** remove a now-redundant snippet and close the one new gap the upgrade opened.
+
+1. **Safety net:** UpdraftPlus database backup (Part 0, step 2).
+2. **Delete the redundant snippet.** Snippets → find *Accessibility: server-side markup fixes (W3C)* →
+   **Delete**. (On 3.16.3 it does nothing — SSP now emits `role="group"` and `h2` itself.)
+3. **Patch the two snippets that label the player fields** so they also cover the new `<textarea>`:
+   - Open *Accessibility: landmarks, labels & ARIA (a11y pass)*. Find:
+     `document.querySelectorAll('.castos-player input[title]')`
+     and change the selector to:
+     `document.querySelectorAll('.castos-player input[title], .castos-player textarea[title]')`
+     Save.
+   - Open *Accessibility: redundant link & title cleanup (WAVE)*. Find:
+     `'a[title], button[title], input[title], img[title]'`
+     and change it to:
+     `'a[title], button[title], input[title], textarea[title], img[title]'`
+     Save.
+
+   *(Alternatively, if you haven't customised the live snippets, you can re-import the updated
+   `code-snippets-export.json` in this bundle — but that risks duplicating snippets; editing in
+   place is safer.)*
+
+4. **Fix the axe "region" alert (skip-link not in a landmark)** — same *Accessibility: landmarks,
+   labels & ARIA (a11y pass)* snippet. This is the "Ensure all page content is contained by landmarks"
+   alert on the home/main page. Add this block just before the final `})();` line of that snippet, then
+   Save:
+
+   ```js
+     document.querySelectorAll('a.skip-link').forEach(function (sk) {
+       if (sk.closest('nav, [role="navigation"]')) return;
+       var nav = document.createElement('nav');
+       nav.setAttribute('aria-label', 'Skip links');
+       sk.parentNode.insertBefore(nav, sk);
+       nav.appendChild(sk);
+     });
+   ```
+
+   *(Easiest alternative: copy the whole body of the "landmarks, labels & ARIA" snippet from this
+   bundle's `code-snippets-export.json` and paste it over the live snippet's code — that brings the
+   `<textarea>` change from step 3 and this skip-link fix in one go.)*
+
+### Verify
+1. Open an episode page, hard-refresh (**Ctrl + F5**).
+2. In DevTools **Elements**, open the player's Share panel and inspect the Embed field — it should be a
+   `<textarea>` with `aria-label="Embed Code"` and **no** `title`.
+3. On the home page, inspect the skip-link — it should now be wrapped in `<nav aria-label="Skip links">`.
+4. Re-run **axe** on home + an episode → **0 violations**, including no more "Ensure all page content is
+   contained by landmarks" (`region`). **Wait for the page to fully load first** (Sydney's preloader
+   overlay must be gone) — running axe mid-load hides the `region` result.
 
 ---
 

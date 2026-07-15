@@ -1,0 +1,66 @@
+add_action( 'wp_footer', function () {
+    ?>
+<script id="a11y-redundant-link-title-fix">
+(function () {
+  function findItemAncestor(el) {
+    var node = el;
+    for (var i = 0; i < 6 && node; i++) {
+      if (node.tagName === 'LI' || node.tagName === 'ARTICLE') return node;
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  function isRedundantTitle(el) {
+    var title = (el.getAttribute('title') || '').trim();
+    if (!title) return false;
+    var al = (el.getAttribute('aria-label') || '').trim();
+    if (al && title.toLowerCase() === al.toLowerCase()) return true;
+    var ownText;
+    if (el.tagName === 'IMG') {
+      ownText = (el.getAttribute('alt') || '').trim();
+    } else {
+      var img = el.querySelector('img[alt]');
+      ownText = img ? (img.getAttribute('alt') || '').trim() : (el.textContent || '').trim();
+    }
+    return !!(ownText && title.toLowerCase() === ownText.toLowerCase());
+  }
+
+  function run() {
+    // Redundant title text: title duplicates the element's own accessible name
+    // (aria-label, own text, own alt, or a child img's alt). Covers links, buttons, inputs,
+    // and bare images (e.g. SSP's Subscribe/Share buttons, share-icon links labelled via
+    // aria-label, the RSS/Episode-URL/Embed-code fields whose aria-label was mirrored from
+    // title by the companion "landmarks, labels & ARIA" snippet, and podcast artwork <img>
+    // tags carrying an identical title+alt).
+    document.querySelectorAll('a[title], button[title], input[title], textarea[title], img[title]').forEach(function (el) {
+      if (isRedundantTitle(el)) el.removeAttribute('title');
+    });
+
+    // Redundant link: an image-only link duplicating a nearby text link to the same URL
+    document.querySelectorAll('a[href] > img:only-child').forEach(function (img) {
+      var a = img.parentElement;
+      if ((a.textContent || '').trim() !== '') return;
+      var item = findItemAncestor(a);
+      if (!item) return;
+      var alt = (img.getAttribute('alt') || '').trim().toLowerCase();
+      if (!alt) return;
+      var href = a.getAttribute('href');
+      if (!href) return;
+      var candidates = item.querySelectorAll('a[href="' + href.replace(/"/g, '\\"') + '"]');
+      candidates.forEach(function (b) {
+        if (b === a) return;
+        var btext = (b.textContent || '').trim().toLowerCase();
+        if (btext && (btext === alt || alt.indexOf(btext) !== -1 || btext.indexOf(alt) !== -1)) {
+          a.setAttribute('aria-hidden', 'true');
+          a.setAttribute('tabindex', '-1');
+        }
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
+})();
+</script>
+    <?php
+}, 99 );

@@ -31,12 +31,15 @@ errors flagged by the WAVE and W3C validators.
 
 ## Bundle contents
 - `customizer-additional-css.css` — the CSS fix block (#1).
-- `code-snippets-export.json` — five PHP snippets, importable into the Code Snippets plugin:
+- `code-snippets-export.json` — **four** PHP snippets, importable into the Code Snippets plugin:
   - *Accessibility: landmarks, labels & ARIA (a11y pass)* — runtime JS for #2/#5/#6.
-  - *Accessibility: server-side markup fixes (W3C)* — output-buffer for #3/#4.
   - *Sydney: strip empty CSS declarations (W3C)* — `sydney_custom_css` filter for #8.
   - *Sydney: HTML validity fixes (W3C)* — output-buffer for #9.
   - *Accessibility: redundant link & title cleanup (WAVE)* — runtime JS for #10/#11.
+
+  > **Was five.** The *Accessibility: server-side markup fixes (W3C)* snippet (#3/#4) was **removed
+  > 2026-07-15** — Seriously Simple Podcasting **3.16.3** fixes both natively (see the SSP 3.16.3 section
+  > at the end of this document).
 
 ## Applying to the LIVE site
 See **[APPLY-TO-LIVE.md](APPLY-TO-LIVE.md)** for detailed step-by-step instructions. In short:
@@ -236,6 +239,51 @@ Security** (enable Turnstile, disable the honeypot).
 
 **Verified 2026-07-07**, both local and live: honeypot field gone, Turnstile widget functional, 0 axe
 violations (only the pre-existing site-wide skip-link `region` finding remains), 0 W3C messages.
+
+## SSP 3.16.3 — snippets retired upstream (2026-07-15)
+
+Seriously Simple Podcasting **3.16.3** (released 2026-07-13) landed several fixes for the exact Castos-player
+issues this bundle patched — in part acting on a bug report we filed
+([support topic](https://wordpress.org/support/topic/castos-player-invalid-html-a11y-issues-readonly-button-multiline-input/)).
+Local was updated 3.16.2 → 3.16.3 and re-verified: **0 axe violations, 0 W3C errors** on home, single
+episode, and `/podcast/`.
+
+**What 3.16.3 now does natively (and what we changed here):**
+
+| Was patched by | 3.16.3 change | Action taken |
+|---|---|---|
+| Fix #3 — strip `aria-label` from role-less `.player-panel-row` | SSP added `role="group"` → `aria-label` is now valid | **Snippet deleted** (the *server-side markup fixes* snippet also covered #4) |
+| Fix #4 — rewrite `h3.ssp-episode-title` → `h2` | SSP added a `$title_level` block setting, default `h2` | **Snippet deleted** (same snippet as #3) |
+| Fix #9 — drop invalid `readonly` on the copy `<button>` | SSP removed `readonly` | Pass now inert; snippet kept (its other passes still apply) |
+| Fix #9 — collapse newlines in the embed `<input value>` | SSP changed the Embed field to a `<textarea>` | Pass now inert; snippet kept |
+
+**One regression the upgrade introduced (fixed):** because the Embed field became a `<textarea>`, it
+slipped past the `title`→`aria-label` mirror (#2) and the redundant-title cleanup (#10), which only matched
+`input` — producing a `label-title-only` axe violation. Both snippets were **broadened to also cover
+`textarea[title]`**; re-verified 0 violations.
+
+**Live implications (if live is on 3.16.3 — it appears to be):**
+- Live's copy of the *server-side markup fixes* snippet is now **dead weight** (harmless — it skips
+  role-bearing divs and finds no `h3` to rewrite). Safe to delete on live.
+- Live **very likely has the same `label-title-only` regression right now**, since live's #2/#10 snippets
+  (applied 2026-07-07) also only matched `input`. Re-importing the updated `code-snippets-export.json`, or
+  editing snippets #2/#10 on live to add `textarea`, resolves it. See `APPLY-TO-LIVE.md` Part 7.
+
+## Skip-link `region` fix (2026-07-15)
+
+Fixed the axe **`region`** alert ("Ensure all page content is contained by landmarks") on the home/main
+page. Sydney's skip-link (`<a class="skip-link">Skip to content`) sits before the header, outside every
+landmark. It was previously accepted as a conventional-pattern false positive, but it's cleanly fixable,
+so the *landmarks, labels & ARIA* snippet now **wraps the skip-link in a labelled `<nav aria-label="Skip
+links">`**. Empirically that's the only fix axe accepts — `tabindex`/`role` on the skip target, or
+re-pointing the `href`, don't clear it.
+
+> **Audit-timing gotcha:** this `region` flag only appears once the page is **fully loaded** — Sydney's
+> full-screen preloader overlay suppresses it mid-load, so an axe run at `domcontentloaded` shows a false
+> "0 region". Always let the page settle (preloader gone / `networkidle`) before trusting an axe result.
+
+Live still shows this alert until the updated *landmarks, labels & ARIA* snippet is applied — see
+`APPLY-TO-LIVE.md` Part 7, step 4.
 
 ## Important caveat
 These fixes live in the database (the `custom_css` option + the `wp_snippets` table). Re-importing a
